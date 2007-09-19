@@ -1,8 +1,14 @@
-2007-09-19  Diab Jerius  <djerius@cfa.harvard.edu>
+2007-09-19 09:07 -0400  djerius  <djerius@cfa.harvard.edu>  (919b734bbf51 [tip])
 
-	Tag: 0.01
+	* MANIFEST.SKIP:
+	exclude more cruft
 
-2007-09-19 09:04 -0400  djerius  <djerius@cfa.harvard.edu>  (bacfabd49ad3 [tip])
+2007-09-19 09:05 -0400  djerius  <djerius@cfa.harvard.edu>  (92cf7500ccf6)
+
+	* ChangeLog:
+	update for release
+
+2007-09-19 09:04 -0400  djerius  <djerius@cfa.harvard.edu>  (bacfabd49ad3)
 
 	* MANIFEST.SKIP:
 	added to keep out the cruft

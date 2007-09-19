@@ -1,4 +1,34 @@
-2007-09-19 09:07 -0400  djerius  <djerius@cfa.harvard.edu>  (919b734bbf51 [tip])
+2007-09-19  Diab Jerius  <djerius@cfa.harvard.edu>
+
+	Tag: 0.02
+
+2007-09-19 10:20 -0400  djerius  <djerius@cfa.harvard.edu>  (c838e6a55dbd [tip])
+
+	* t/interp.t:
+	test multiple substitutions
+
+2007-09-19 10:17 -0400  djerius  <djerius@cfa.harvard.edu>  (968e143e0aa6)
+
+	* lib/String/Interpolate/RE.pm:
+	misunderstood context of expression result in code execution in
+	s///, fixed
+
+2007-09-19 10:16 -0400  djerius  <djerius@cfa.harvard.edu>  (238c42bbbc91)
+
+	* t/interp.t:
+	add tests for side effects in rest of string
+
+2007-09-19 09:29 -0400  djerius  <djerius@cfa.harvard.edu>  (84a28f662357)
+
+	* .hgtags:
+	Added tag 0.01 for changeset 6d73de9a9a15
+
+2007-09-19 09:28 -0400  djerius  <djerius@cfa.harvard.edu>  (6d73de9a9a15 [0.01])
+
+	* ChangeLog:
+	update for release
+
+2007-09-19 09:07 -0400  djerius  <djerius@cfa.harvard.edu>  (919b734bbf51)
 
 	* MANIFEST.SKIP:
 	exclude more cruft

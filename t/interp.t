@@ -1,4 +1,4 @@
-use Test::More tests => 10;
+use Test::More tests => 12;
 
 use String::Interpolate::RE qw( strinterp );
 
@@ -31,3 +31,8 @@ is( strinterp( '$c', {}, {UseEnv => 0} ), '$c', 'not defined; UseENV => 0' );
 is( strinterp( '$c/b' ), '33/b', 'side effects: front' );
 is( strinterp( 'a/$c/b' ), 'a/33/b', 'side effects: middle' );
 is( strinterp( 'a/$c' ), 'a/33', 'side effects: end' );
+
+
+# test multiple substitutions
+is( strinterp( '$a/$b/$c', \%vars ), '1/2/33', 'multiple substitutions' );
+is( strinterp( '$a/$a/$a', \%vars ), '1/1/1', 'multiple identical substitutions' );

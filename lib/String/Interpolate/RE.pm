@@ -26,11 +26,11 @@ use warnings;
 use Carp;
 
 use base 'Exporter';
-our @EXPORT_OK = qw( interpolate );
+our @EXPORT_OK = qw( strinterp );
 
 our $VERSION = '0.01';
 
-sub interpolate
+sub strinterp
 {
   my ( $text, $var, $opts ) = @_;
 
@@ -101,7 +101,7 @@ String::Interpolate::RE - interpolate variables into strings
 
     use String::Interpolate::RE qw( interpolate );
 
-    $str = interpolate( "${Var1} $Var2", \%vars, \%opts );
+    $str = strinterp( "${Var1} $Var2", \%vars, \%opts );
 
 
 =head1 DESCRIPTION
@@ -119,11 +119,11 @@ strings of suspect ancestry.
 
 =over
 
-=item interpolate
+=item strinterp
 
-    $str = interpolate( $template );
-    $str = interpolate( $template, \%var );
-    $str = interpolate( $template, \%var, \%opts );
+    $str = strinterp( $template );
+    $str = strinterp( $template, \%var );
+    $str = strinterp( $template, \%var, \%opts );
 
 Interpolate variables into a template string, returning the
 resultant string.  The template string is scanned for tokens of the
@@ -181,7 +181,7 @@ variable C<%s> is not defined.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-string-interpolate-variable@rt.cpan.org>, or through the web interface at
+C<bug-string-interpolate-re@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=String-Interpolate-RE>.
 
 =head1 SEE ALSO

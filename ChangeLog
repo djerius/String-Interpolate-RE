@@ -1,0 +1,26 @@
+2007-09-19  Diab Jerius  <djerius@cfa.harvard.edu>
+
+	Tag: 0.01
+
+2007-09-19 09:04 -0400  djerius  <djerius@cfa.harvard.edu>  (bacfabd49ad3 [tip])
+
+	* MANIFEST.SKIP:
+	added to keep out the cruft
+
+2007-09-19 09:04 -0400  djerius  <djerius@cfa.harvard.edu>  (5ecc5243285d)
+
+	* Makefile.PL:
+	don't use Test::Exception. It has too many dependencies for this
+	small package
+
+2007-09-19 09:03 -0400  djerius  <djerius@cfa.harvard.edu>  (9f8a09934b8a)
+
+	* lib/String/Interpolate/RE.pm, t/interp.t:
+	change routine from interpolate to strinterp to make it more unique
+
+2007-09-18 17:30 -0400  djerius  <djerius@cfa.harvard.edu>  (fe0d187ff26c)
+
+	* Changes, LICENSE, Makefile.PL, README, lib/String/Interpolate/RE.pm,
+	t/00-load.t, t/interp.t, t/perlcritic.t, t/pod-coverage.t, t/pod.t:
+	initial import
+

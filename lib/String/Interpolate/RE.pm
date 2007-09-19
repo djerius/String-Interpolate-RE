@@ -55,34 +55,19 @@ sub strinterp
       my $t = defined( $3 ) ? $3 : $2;
 
       # in user provided variable hash?
-      if (  defined $var->{$t} )
-      {
-         return $var->{$t};
-      }
+        defined $var->{$t}                ? $var->{$t}
 
-      # maybe in the environment (if requested)
-      elsif ( $opt{useenv} && exists $ENV{$t} )
-      {
-         return $ENV{$t};
-      }
+      # maybe in the environment
+      : $opt{useenv} && exists $ENV{$t}   ? $ENV{$t}
 
       # undefined: throw an error?
-      elsif ( $opt{raiseundef} )
-      {
-         croak( "undefined variable: $t\n" );
-      }
+      : $opt{raiseundef}                  ? croak( "undefined variable: $t\n" )
 
-      # undefined: replace with empty string?
-      elsif ( $opt{emptyundef} )
-      {
-         return '';
-      }
+      # undefined: replace with ''?
+      : $opt{emptyundef}                  ? ''
 
       # just put it back into the string
-      else
-      {
-         return '$' . $1;
-      }
+      :                                     '$' . $1;
   }egx;
 
   return $text;

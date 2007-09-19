@@ -1,0 +1,4 @@
+.hg/
+.old$
+.bak$
+Makefile$

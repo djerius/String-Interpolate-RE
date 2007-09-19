@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 10;
 
 use String::Interpolate::RE qw( strinterp );
 
@@ -25,3 +25,9 @@ ok( $@, 'not defined; RaiseUndef');
 $ENV{c} = '33';
 is( strinterp( '$a', \%vars, {UseEnv => 0} ), '1', 'defined; UseENV => 0' );
 is( strinterp( '$c', {}, {UseEnv => 0} ), '$c', 'not defined; UseENV => 0' );
+
+
+# test effect on the rest of the string
+is( strinterp( '$c/b' ), '33/b', 'side effects: front' );
+is( strinterp( 'a/$c/b' ), 'a/33/b', 'side effects: middle' );
+is( strinterp( 'a/$c' ), 'a/33', 'side effects: end' );

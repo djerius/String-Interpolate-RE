@@ -1,4 +1,20 @@
-2008-05-11 15:09 -0400  djerius  <djerius@cfa.harvard.edu>  (52b77e40ba22 [tip])
+2008-05-11  Diab Jerius  <djerius@cfa.harvard.edu>
+
+	Tag 0.03
+
+2008-05-11 15:12 -0400  djerius  <djerius@cfa.harvard.edu>  (7ddef36329f0 [tip])
+
+	* t/format.t: new file.
+	* t/format.t:
+	forgot to add the test for the formatting of interpolated variables
+	to the repository
+
+2008-05-11 15:11 -0400  djerius  <djerius@cfa.harvard.edu>  (8f4ee974d7b6)
+
+	* ChangeLog, Changes, lib/String/Interpolate/RE.pm:
+	update version and logs for release
+
+2008-05-11 15:09 -0400  djerius  <djerius@cfa.harvard.edu>  (52b77e40ba22)
 
 	* lib/String/Interpolate/RE.pm, t/interp.t:
 	allow specification of a sprintf style format in the template string

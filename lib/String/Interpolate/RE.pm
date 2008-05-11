@@ -36,6 +36,7 @@ sub strinterp
 
   $var = {} unless defined $var;
 
+  ## no critic (ProhibitAccessOfPrivateData)
   my %opt = ( raiseundef => 0,
 	      emptyundef => 0,
 	      useenv => 1,
@@ -43,6 +44,7 @@ sub strinterp
 	          ? ( map { (lc $_ => $opts->{$_ }) } keys %{$opts} )
 	          : (),
 	     );
+  ## use critic
 
   $text =~ s{
        \$                # find a literal dollar sign

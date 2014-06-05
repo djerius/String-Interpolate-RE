@@ -58,12 +58,14 @@ sub strinterp {
        |                 # or
         (\w+)            #   a bareword ($3)
       )
-  }{
+    }{
       my $t = defined $4 ? $4 : $2;
 
+      my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
+
       my $v =
-      # in user provided variable hash?
-        defined $var->{$t}                ? $var->{$t}
+      # user provided?
+        defined $user_value               ? $user_value
 
       # maybe in the environment
       : $opt{useenv} && exists $ENV{$t}   ? $ENV{$t}
@@ -106,20 +108,18 @@ String::Interpolate::RE - interpolate variables into strings
 
 =head1 SYNOPSIS
 
-    use String::Interpolate::RE qw( interpolate );
+    use String::Interpolate::RE qw( strinterp );
 
-    $str = strinterp( "${Var1} $Var2", \%vars, \%opts );
+    $str = strinterp( "${Var1} $Var2", $vars, \%opts );
 
 
 =head1 DESCRIPTION
 
-This module interpolates variables into strings, using the passed
-C<%vars> hash as well as C<%ENV> as the source of the values.
-
-It uses regular expression matching rather than Perl's built-in
-interpolation mechanism and thus hopefully does not suffer from the
-security problems inherent in using B<eval> to interpolate into
-strings of suspect ancestry.
+This module interpolates variables into strings using regular
+expression matching rather than Perl's built-in interpolation
+mechanism and thus hopefully does not suffer from the security
+problems inherent in using B<eval> to interpolate into strings of
+suspect ancestry.
 
 
 =head1 INTERFACE
@@ -129,8 +129,8 @@ strings of suspect ancestry.
 =item strinterp
 
     $str = strinterp( $template );
-    $str = strinterp( $template, \%var );
-    $str = strinterp( $template, \%var, \%opts );
+    $str = strinterp( $template, $vars );
+    $str = strinterp( $template, $vars, \%opts );
 
 Interpolate variables into a template string, returning the
 resultant string.  The template string is scanned for tokens of the
@@ -140,11 +140,14 @@ form
     ${VAR}
 
 where C<VAR> is composed of one or more word characters (as defined by
-the C<\w> Perl regular expression pattern).  If a matching token is a
-key in either the optional C<%var> hash or in the C<%ENV>
-hash the corresponding value will be interpolated into the string at
-that point.  REs which are not defined are by default left as is
-in the string.
+the C<\w> Perl regular expression pattern). C<VAR> is resolved using
+the optional C<$vars> argument, which may either by a hashref (in
+which case C<VAR> must be a key), or a function reference (which is
+passed C<VAR> as its only argument and must return the value).
+
+If the value returned for C<VAR> is defined, it will be interpolated
+into the string at that point.  By default, variables which are not
+defined are by default left as is in the string.
 
 The C<%opts> parameter may be used to modify the behavior of this
 function.  The following (case insensitive) keys are recognized:
@@ -215,11 +218,6 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=String-Interpolate-RE>.
 Other CPAN Modules which interpolate into strings are
 L<String::Interpolate> and L<Interpolate>.  This module avoids the use
 of B<eval()> and presents a simpler interface.
-
-
-=head1 VERSION
-
-Version 0.01
 
 =head1 LICENSE AND COPYRIGHT
 

@@ -9,5 +9,6 @@ all_from 'lib/String/Interpolate/RE.pm';
 build_requires 'Test::More';
 
 auto_install;
+author_tests( 'xt' );
 
 WriteAll;

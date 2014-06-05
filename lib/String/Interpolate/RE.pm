@@ -25,7 +25,7 @@ use strict;
 use warnings;
 use Carp;
 
-use base 'Exporter';
+use Exporter qw[ import ];
 our @EXPORT_OK = qw( strinterp );
 
 our $VERSION = '0.03';

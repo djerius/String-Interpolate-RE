@@ -30,30 +30,31 @@ our @EXPORT_OK = qw( strinterp );
 
 our $VERSION = '0.03';
 
-sub strinterp
-{
-  my ( $text, $var, $opts ) = @_;
+sub strinterp {
 
-  $var = {} unless defined $var;
+    my ( $text, $var, $opts ) = @_;
 
-  ## no critic (ProhibitAccessOfPrivateData)
-  my %opt = ( raiseundef => 0,
-	      emptyundef => 0,
-	      useenv => 1,
-              format => 0,
-	      defined $opts
-	          ? ( map { (lc $_ => $opts->{$_ }) } keys %{$opts} )
-	          : (),
-	     );
-  ## use critic
+    $var = {} unless defined $var;
 
-  my $fmt = $opt{format} ? ':([^}]+)' : '()';
+    ## no critic (ProhibitAccessOfPrivateData)
+    my %opt = (
+        raiseundef => 0,
+        emptyundef => 0,
+        useenv     => 1,
+        format     => 0,
+        defined $opts
+        ? ( map { ( lc $_ => $opts->{$_} ) } keys %{$opts} )
+        : (),
+    );
+    ## use critic
 
-  $text =~ s{
+    my $fmt = $opt{format} ? ':([^}]+)' : '()';
+
+    $text =~ s{
        \$                # find a literal dollar sign
       (                  # followed by either
        {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
-             		 #  and an optional sprintf format 
+             		 #  and an optional sprintf format
        |                 # or
         (\w+)            #   a bareword ($3)
       )
@@ -91,7 +92,7 @@ sub strinterp
 
       }egx;
 
-  return $text;
+    return $text;
 }
 
 1;
@@ -159,7 +160,7 @@ an intervening C<:> character, e.g.
 
     ${VAR:fmt}
 
-For example, 
+For example,
 
     %var = ( foo => 3 );
     print strinterp( '${foo:%03d}', \%var, { Format => 1 } );

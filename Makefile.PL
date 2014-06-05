@@ -6,9 +6,12 @@ name 'String-Interpolate-RE';
 
 all_from 'lib/String/Interpolate/RE.pm';
 
-build_requires 'Test::More';
+author 'Diab Jerius';
+
+author_tests( 'xt' );
 
 auto_install;
-author_tests( 'xt' );
+
+cpanfile;
 
 WriteAll;

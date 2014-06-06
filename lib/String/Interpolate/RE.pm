@@ -1,6 +1,6 @@
 # --8<--8<--8<--8<--
 #
-# Copyright (C) 2007 Smithsonian Astrophysical Observatory
+# Copyright (C) 2007, 2014 Smithsonian Astrophysical Observatory
 #
 # This file is part of String::Interpolate::RE
 #
@@ -30,21 +30,22 @@ our @EXPORT_OK = qw( strinterp );
 
 our $VERSION = '0.04';
 
+## no critic (ProhibitAccessOfPrivateData)
+
 sub strinterp {
 
     my ( $text, $var, $opts ) = @_;
 
     $var = {} unless defined $var;
 
-    ## no critic (ProhibitAccessOfPrivateData)
     my %opt = (
-        raiseundef    => 0,
-        emptyundef    => 0,
-        useenv        => 1,
-        format        => 0,
-        recurse       => 0,
-        recurse_limit => 0,
-        recurse_fail_limit  => 100,
+        raiseundef         => 0,
+        emptyundef         => 0,
+        useenv             => 1,
+        format             => 0,
+        recurse            => 0,
+        recurse_limit      => 0,
+        recurse_fail_limit => 100,
         defined $opts
         ? ( map { ( lc $_ => $opts->{$_} ) } keys %{$opts} )
         : (),
@@ -53,91 +54,90 @@ sub strinterp {
 
     my $fmt = $opt{format} ? ':([^}]+)' : '()';
 
-    # keep track of recursive loops
-    my %track;
-    my $loop = 0;
+    $opt{track} = {};
+    $opt{loop}  = 0;
+    $opt{fmt}   = $fmt;
 
-    # can't use __SUB__ until perl >= 5.16; need a ref to the anon sub
-    # in itself.
-    my $interpolate;
-    $interpolate = sub {
-
-        $_[0] =~ s{
-		    \$                # find a literal dollar sign
-		   (                  # followed by either
-		    {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
-				      #  and an optional sprintf format
-		    |                 # or
-		     (\w+)            #   a bareword ($3)
-		   )
-		 }{
-		   my $t = defined $4 ? $4 : $2;
-
-		   my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
-
-		   my $v =
-		   # user provided?
-		     defined $user_value               ? $user_value
-
-		   # maybe in the environment
-		   : $opt{useenv} && exists $ENV{$t}   ? $ENV{$t}
-
-		   # undefined: throw an error?
-		   : $opt{raiseundef}                  ? croak( "undefined variable: $t\n" )
-
-		   # undefined: replace with ''?
-		   : $opt{emptyundef}                  ? ''
-
-		   # undefined
-		   :                                     undef
-
-		   ;
-
-		   if ( $opt{recurse} && defined $v ) {
-
-
-		     RECURSE:
-		       {
-
-			   croak(
-			       "recursive interpolation loop detected with repeated interpolation of <\$$t>\n"
-			   ) if $track{$t}++;
-
-			   ++$loop;
-
-			   last RECURSE if $opt{recurse_limit} && $loop > $opt{recurse_limit};
-
-			   croak(
-			       "recursion fail-safe limit ($opt{recurse_fail_limit}) reached at interpolation of <\$$t>\n"
-			   ) if $opt{recurse_fail_limit} && $loop > $opt{recurse_fail_limit};
-
-			   $interpolate->( $v );
-
-		       }
-
-		       delete $track{$t};
-		       $loop--;
-		   }
-
-		     # if not defined, just put it back into the string
-			! defined $v                     ? '$' . $1
-
-		     # no format? return as is
-		     :  ! defined $3 || $3 eq ''         ? $v
-
-		     # format it
-		     :                                     sprintf( $3, $v)
-
-		     ;
-
-	}egx;
-
-    };
-
-    $interpolate->( $text );
-
+    _strinterp( $text, $var, \%opt );
 
     return $text;
+}
+
+sub _strinterp {
+
+    my $var = $_[1];
+    my $opt = $_[2];
+    my $fmt = $opt->{fmt};
+
+    $_[0] =~ s{
+	       \$                # find a literal dollar sign
+	      (                  # followed by either
+	       {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
+				 #  and an optional sprintf format
+	       |                 # or
+		(\w+)            #   a bareword ($3)
+	      )
+	    }{
+	      my $t = defined $4 ? $4 : $2;
+
+	      my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
+
+	      my $v =
+	      # user provided?
+		defined $user_value               ? $user_value
+
+	      # maybe in the environment
+	      : $opt->{useenv} && exists $ENV{$t}   ? $ENV{$t}
+
+	      # undefined: throw an error?
+	      : $opt->{raiseundef}                  ? croak( "undefined variable: $t\n" )
+
+	      # undefined: replace with ''?
+	      : $opt->{emptyundef}                  ? ''
+
+	      # undefined
+	      :                                     undef
+
+	      ;
+
+	      if ( $opt->{recurse} && defined $v ) {
+
+
+		RECURSE:
+		  {
+
+		      croak(
+			  "circular interpolation loop detected with repeated interpolation of <\$$t>\n"
+		      ) if $opt->{track}{$t}++;
+
+		      ++$opt->{loop};
+
+		      last RECURSE if $opt->{recurse_limit} && $opt->{loop} > $opt->{recurse_limit};
+
+		      croak(
+			  "recursion fail-safe limit ($opt->{recurse_fail_limit}) reached at interpolation of <\$$t>\n"
+		      ) if $opt->{recurse_fail_limit} && $opt->{loop} > $opt->{recurse_fail_limit};
+
+		      _strinterp( $v, $_[1], $_[2] );
+
+		  }
+
+		  delete $opt->{track}{$t};
+		  --$opt->{loop};
+	      }
+
+	      # if not defined, just put it back into the string
+		 ! defined $v                     ? '$' . $1
+
+	      # no format? return as is
+	      :  ! defined $3 || $3 eq ''         ? $v
+
+	      # format it
+	      :                                     sprintf( $3, $v)
+
+	      ;
+
+	}egx;
 }
 
 1;

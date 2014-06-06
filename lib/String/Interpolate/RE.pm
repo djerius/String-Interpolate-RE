@@ -38,10 +38,13 @@ sub strinterp {
 
     ## no critic (ProhibitAccessOfPrivateData)
     my %opt = (
-        raiseundef => 0,
-        emptyundef => 0,
-        useenv     => 1,
-        format     => 0,
+        raiseundef    => 0,
+        emptyundef    => 0,
+        useenv        => 1,
+        format        => 0,
+        recurse       => 0,
+        recurse_limit => 0,
+        recurse_fail_limit  => 100,
         defined $opts
         ? ( map { ( lc $_ => $opts->{$_} ) } keys %{$opts} )
         : (),
@@ -50,49 +53,89 @@ sub strinterp {
 
     my $fmt = $opt{format} ? ':([^}]+)' : '()';
 
-    $text =~ s{
-       \$                # find a literal dollar sign
-      (                  # followed by either
-       {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
-             		 #  and an optional sprintf format
-       |                 # or
-        (\w+)            #   a bareword ($3)
-      )
-    }{
-      my $t = defined $4 ? $4 : $2;
+    # keep track of recursive loops
+    my %track;
+    my $loop = 0;
 
-      my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
+    # can't use __SUB__ until perl >= 5.16; need a ref to the anon sub
+    # in itself.
+    my $interpolate;
+    $interpolate = sub {
 
-      my $v =
-      # user provided?
-        defined $user_value               ? $user_value
+        $_[0] =~ s{
+		    \$                # find a literal dollar sign
+		   (                  # followed by either
+		    {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
+				      #  and an optional sprintf format
+		    |                 # or
+		     (\w+)            #   a bareword ($3)
+		   )
+		 }{
+		   my $t = defined $4 ? $4 : $2;
 
-      # maybe in the environment
-      : $opt{useenv} && exists $ENV{$t}   ? $ENV{$t}
+		   my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
 
-      # undefined: throw an error?
-      : $opt{raiseundef}                  ? croak( "undefined variable: $t\n" )
+		   my $v =
+		   # user provided?
+		     defined $user_value               ? $user_value
 
-      # undefined: replace with ''?
-      : $opt{emptyundef}                  ? ''
+		   # maybe in the environment
+		   : $opt{useenv} && exists $ENV{$t}   ? $ENV{$t}
 
-      # undefined
-      :                                     undef
+		   # undefined: throw an error?
+		   : $opt{raiseundef}                  ? croak( "undefined variable: $t\n" )
 
-      ;
+		   # undefined: replace with ''?
+		   : $opt{emptyundef}                  ? ''
 
-      # if not defined, just put it back into the string
-         ! defined $v                     ? '$' . $1
+		   # undefined
+		   :                                     undef
 
-      # no format? return as is
-      :  ! defined $3 || $3 eq ''         ? $v
+		   ;
 
-      # format it
-      :                                     sprintf( $3, $v)
+		   if ( $opt{recurse} && defined $v ) {
 
-      ;
 
-      }egx;
+		     RECURSE:
+		       {
+
+			   croak(
+			       "recursive interpolation loop detected with repeated interpolation of <\$$t>\n"
+			   ) if $track{$t}++;
+
+			   ++$loop;
+
+			   last RECURSE if $opt{recurse_limit} && $loop > $opt{recurse_limit};
+
+			   croak(
+			       "recursion fail-safe limit ($opt{recurse_fail_limit}) reached at interpolation of <\$$t>\n"
+			   ) if $opt{recurse_fail_limit} && $loop > $opt{recurse_fail_limit};
+
+			   $interpolate->( $v );
+
+		       }
+
+		       delete $track{$t};
+		       $loop--;
+		   }
+
+		     # if not defined, just put it back into the string
+			! defined $v                     ? '$' . $1
+
+		     # no format? return as is
+		     :  ! defined $3 || $3 eq ''         ? $v
+
+		     # format it
+		     :                                     sprintf( $3, $v)
+
+		     ;
+
+	}egx;
+
+    };
+
+    $interpolate->( $text );
+
 
     return $text;
 }
@@ -154,7 +197,7 @@ function.  The following (case insensitive) keys are recognized:
 
 =over
 
-=item Format
+=item format I<boolean>
 
 If this flag is true, the template string may provide a C<sprintf>
 compatible format which will be used to generate the interpolated
@@ -166,27 +209,59 @@ an intervening C<:> character, e.g.
 For example,
 
     %var = ( foo => 3 );
-    print strinterp( '${foo:%03d}', \%var, { Format => 1 } );
+    print strinterp( '${foo:%03d}', \%var, { format => 1 } );
 
 would result in
 
     003
 
 
-=item RaiseUndef
+=item raiseundef I<boolean>
 
 If true, a variable which has not been defined will result in an
 exception being raised.  This defaults to false.
 
-=item EmptyUndef
+=item emptyundef I<boolean>
 
 If true, a variable which has not been defined will be replaced with
 the empty string.  This defaults to false.
 
-=item UseENV
+=item useENV I<boolean>
 
 If true, the C<%ENV> hash will be searched for variables which are not
 defined in the passed C<%var> hash.  This defaults to true.
+
+=item recurse I<boolean>
+
+If true, derived values are themselves scanned for variables to
+interpolate.  To specify a limit to the number of levels of recursions
+to attempt, set the C<recurse_limit> option.  Circular dependencies
+are caught, but just to be safe there's a limit of recursion levels
+specified by C<recurse_fail_limit>, beyond which an exception is
+thrown.
+
+For example,
+
+  my %var = ( a => '$b', b => '$c', c => 'd' );
+  strinterp( '$a', \%var ) => '$b'
+  strinterp( '$a', \%var, { recurse => 1 } ) => 'd'
+  strinterp( '$a', \%var, { recurse => 1, recurse_limit => 1 } ) => '$c'
+
+  strinterp( '$a', { a => '$b', b => '$a' } , { recurse => 1 }
+        recursive interpolation loop detected with repeated
+        interpolation of $a
+
+=item recurse_limit I<integer>
+
+The number of recursion levels to descend when recursing into a
+variable's value before stopping.  The default is C<0>, which means no
+limit.
+
+=item recurse_fail_limit I<integer>
+
+The number of recursion levels to descend when recursing into a
+variable's value before giving up and croaking.  The default is C<100>.
+Setting this to C<0> means no limit.
 
 
 =back
@@ -202,6 +277,16 @@ defined in the passed C<%var> hash.  This defaults to true.
 
 This string is thrown if the C<RaiseUndef> option is set and the
 variable C<%s> is not defined.
+
+=item C<< recursive interpolation loop detected with repeated interpolation of <%s> >>
+
+When resolving nested interpolated values (with the C<recurse> option
+true ) a circular loop was found.
+
+=item C<< recursion fail-safe limit (%d) reached at interpolation of <%s> >>
+
+The recursion fail safe limit (C<recurse_fail_limit>) was reached while
+interpolating nested variable values (with the C<recurse> option true ).
 
 =back
 
@@ -221,7 +306,7 @@ of B<eval()> and presents a simpler interface.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2007 The Smithsonian Astrophysical Observatory
+Copyright (c) 2007, 2014 The Smithsonian Astrophysical Observatory
 
 String::Interpolate::RE is free software: you can redistribute
 it and/or modify it under the terms of the GNU General Public License

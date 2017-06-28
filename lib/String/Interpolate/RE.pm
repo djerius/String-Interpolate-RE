@@ -1,25 +1,6 @@
-# --8<--8<--8<--8<--
-#
-# Copyright (C) 2007, 2014 Smithsonian Astrophysical Observatory
-#
-# This file is part of String::Interpolate::RE
-#
-# String::Interpolate::RE is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation, either version 3 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# -->8-->8-->8-->8--
-
 package String::Interpolate::RE;
+
+# ABSTRACT: interpolate variables into strings using regular expressions
 
 use strict;
 use warnings;
@@ -70,83 +51,81 @@ sub _strinterp {
     my $fmt = $opt->{fmt};
 
     $_[0] =~ s{
-	       \$                # find a literal dollar sign
-	      (                  # followed by either
-	       {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
-				 #  and an optional sprintf format
-	       |                 # or
-		(\w+)            #   a bareword ($3)
-	      )
-	    }{
-	      my $t = defined $4 ? $4 : $2;
+               \$                # find a literal dollar sign
+              (                  # followed by either
+               {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
+                                 #  and an optional sprintf format
+               |                 # or
+                (\w+)            #   a bareword ($3)
+              )
+            }{
+              my $t = defined $4 ? $4 : $2;
 
-	      my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
+              my $user_value = 'CODE' eq ref $var ? $var->($t) : $var->{$t};
 
-	      my $v =
-	      # user provided?
-		defined $user_value               ? $user_value
+              my $v =
+              # user provided?
+                defined $user_value               ? $user_value
 
-	      # maybe in the environment
-	      : $opt->{useenv} && exists $ENV{$t}   ? $ENV{$t}
+              # maybe in the environment
+              : $opt->{useenv} && exists $ENV{$t}   ? $ENV{$t}
 
-	      # undefined: throw an error?
-	      : $opt->{raiseundef}                  ? croak( "undefined variable: $t\n" )
+              # undefined: throw an error?
+              : $opt->{raiseundef}                  ? croak( "undefined variable: $t\n" )
 
-	      # undefined: replace with ''?
-	      : $opt->{emptyundef}                  ? ''
+              # undefined: replace with ''?
+              : $opt->{emptyundef}                  ? ''
 
-	      # undefined
-	      :                                     undef
+              # undefined
+              :                                     undef
 
-	      ;
+              ;
 
-	      if ( $opt->{recurse} && defined $v ) {
+              if ( $opt->{recurse} && defined $v ) {
 
 
-		RECURSE:
-		  {
+                RECURSE:
+                  {
 
-		      croak(
-			  "circular interpolation loop detected with repeated interpolation of <\$$t>\n"
-		      ) if $opt->{track}{$t}++;
+                      croak(
+                          "circular interpolation loop detected with repeated interpolation of <\$$t>\n"
+                      ) if $opt->{track}{$t}++;
 
-		      ++$opt->{loop};
+                      ++$opt->{loop};
 
-		      last RECURSE if $opt->{recurse_limit} && $opt->{loop} > $opt->{recurse_limit};
+                      last RECURSE if $opt->{recurse_limit} && $opt->{loop} > $opt->{recurse_limit};
 
-		      croak(
-			  "recursion fail-safe limit ($opt->{recurse_fail_limit}) reached at interpolation of <\$$t>\n"
-		      ) if $opt->{recurse_fail_limit} && $opt->{loop} > $opt->{recurse_fail_limit};
+                      croak(
+                          "recursion fail-safe limit ($opt->{recurse_fail_limit}) reached at interpolation of <\$$t>\n"
+                      ) if $opt->{recurse_fail_limit} && $opt->{loop} > $opt->{recurse_fail_limit};
 
-		      _strinterp( $v, $_[1], $_[2] );
+                      _strinterp( $v, $_[1], $_[2] );
 
-		  }
+                  }
 
-		  delete $opt->{track}{$t};
-		  --$opt->{loop};
-	      }
+                  delete $opt->{track}{$t};
+                  --$opt->{loop};
+              }
 
-	      # if not defined, just put it back into the string
-		 ! defined $v                     ? '$' . $1
+              # if not defined, just put it back into the string
+                 ! defined $v                     ? '$' . $1
 
-	      # no format? return as is
-	      :  ! defined $3 || $3 eq ''         ? $v
+              # no format? return as is
+              :  ! defined $3 || $3 eq ''         ? $v
 
-	      # format it
-	      :                                     sprintf( $3, $v)
+              # format it
+              :                                     sprintf( $3, $v)
 
-	      ;
+              ;
 
-	}egx;
+        }egx;
 }
 
 1;
 
+# COPYRIGHT
+
 __END__
-
-=head1 NAME
-
-String::Interpolate::RE - interpolate variables into strings
 
 
 =head1 SYNOPSIS
@@ -289,40 +268,4 @@ The recursion fail safe limit (C<recurse_fail_limit>) was reached while
 interpolating nested variable values (with the C<recurse> option true ).
 
 =back
-
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests to
-C<bug-string-interpolate-re@rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=String-Interpolate-RE>.
-
-=head1 SEE ALSO
-
-Other CPAN Modules which interpolate into strings are
-L<String::Interpolate> and L<Interpolate>.  This module avoids the use
-of B<eval()> and presents a simpler interface.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright (c) 2007, 2014 The Smithsonian Astrophysical Observatory
-
-String::Interpolate::RE is free software: you can redistribute
-it and/or modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-=head1 AUTHOR
-
-Diab Jerius  E<lt>djerius@cpan.orgE<gt>
-
 

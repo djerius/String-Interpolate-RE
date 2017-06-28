@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+  [BUILD]
+    * swich build infrastructure to Dist::Zilla
+    * compatible with Perl >= 5.26 no '.' in @INC.
+
 0.05 2014-06-08T16:54:02-0400
 
   [BUILD FIX]

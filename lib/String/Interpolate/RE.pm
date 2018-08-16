@@ -51,12 +51,12 @@ sub _strinterp {
     my $fmt = $opt->{fmt};
 
     $_[0] =~ s{
-               \$                # find a literal dollar sign
-              (                  # followed by either
-               {(\w+)(?:$fmt)?}  #  a variable name in curly brackets ($2)
-                                 #  and an optional sprintf format
-               |                 # or
-                (\w+)            #   a bareword ($3)
+               \$                    # find a literal dollar sign
+              (                      # followed by either
+               \{ (\w+)(?:$fmt)? \}  #  a variable name in curly brackets ($2)
+                                     #  and an optional sprintf format
+               |                     # or
+                (\w+)                #   a bareword ($3)
               )
             }{
               my $t = defined $4 ? $4 : $2;

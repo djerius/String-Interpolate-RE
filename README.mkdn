@@ -4,7 +4,7 @@ String::Interpolate::RE - interpolate variables into strings using regular expre
 
 # VERSION
 
-version 0.07
+version 0.08
 
 # SYNOPSIS
 

@@ -14,7 +14,7 @@ foreach ( [ 0 => 0 ], [ 1 => 1 ], [ 2 => 1 ], [ 3 => 1 ], [ 4 => 0 ] ) {
 
     if ( $exp ) {
 
-        like( 
+        like(
            dies { strinterp( '$a', \%vars, { recurse => 1, recurse_fail_limit => $limit } ) },
              qr/recursion fail-safe limit/,
              "recursion fail limit = $limit"

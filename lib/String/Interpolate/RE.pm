@@ -8,7 +8,7 @@ use Carp;
 
 use Exporter::Shiny qw[ strinterp ];
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 ## no critic (ProhibitAccessOfPrivateData)
 

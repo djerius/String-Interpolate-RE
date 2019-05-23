@@ -23,15 +23,14 @@ my %Opt = (
         recurse_fail_limit => 100,
 );
 
-my $default_strinterp;
+*strinterp =  _mk_strinterp( \%Opt );
 
 sub _generate_strinterp {
 
     my ( $me, $name, $args ) = @_;
 
-    if ( ! defined $args || ! defined $args->{opts}) {
-        return $default_strinterp || _mk_strinterp( \%Opt );
-    }
+    return \&strinterp
+      if ! defined $args || ! defined $args->{opts};
 
     my %opt = %Opt;
     $opt{lc $_} = $args->{opts}{$_} foreach keys %{$args->{opts}};

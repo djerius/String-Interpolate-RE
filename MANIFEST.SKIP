@@ -1,6 +1,4 @@
-CONTRIB
-\bRCS\b
-^MANIFEST\.
+^Build$
 ^Makefile$
 ^GNUmakefile
 ^INSTALL
@@ -16,3 +14,4 @@ CVS/
 ^.hg
 ^MYMETA
 ^cover_db/
+^_build_params

@@ -96,9 +96,6 @@ sub _strinterp {
               # undefined: throw an error?
               : $opt->{raiseundef}                  ? croak( "undefined variable: $t\n" )
 
-              # undefined: replace with ''?
-              : $opt->{emptyundef}                  ? ''
-
               # undefined
               :                                     undef
 
@@ -130,8 +127,10 @@ sub _strinterp {
                   --$opt->{loop};
               }
 
-              # if not defined, just put it back into the string
-                 ! defined $v                     ? '$' . $1
+              # if not defined:
+              #   if emptyundef, replace with an empty string
+              #   otherwise,     just put it back into the string
+                 ! defined $v ? ( $opt->{emptyundef}  ? '' : '$' . $1 )
 
               # no format? return as is
               :  ! defined $3 || $3 eq ''         ? $v

@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+  [BUG FIX]
+
+    * The emptyundef flag was broken for formatted interpolations
+
 0.10      2019-05-23 15:21:21-04:00 America/New_York
 
   [BUG FIX]

@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.11      2021-09-01 15:37:30-04:00 America/New_York
+
   [BUG FIX]
 
     * The emptyundef flag was broken for formatted interpolations

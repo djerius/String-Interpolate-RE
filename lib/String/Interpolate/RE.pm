@@ -4,7 +4,6 @@ package String::Interpolate::RE;
 
 use strict;
 use warnings;
-use Carp;
 
 use Exporter::Shiny qw[ strinterp ];
 
@@ -24,6 +23,11 @@ my %Opt = (
 );
 
 *strinterp =  _mk_strinterp( \%Opt );
+
+sub _croak {
+    require Carp;
+    goto &Carp::croak;
+}
 
 sub _generate_strinterp {
 
@@ -94,7 +98,7 @@ sub _strinterp {
               : $opt->{useenv} && exists $ENV{$t}   ? $ENV{$t}
 
               # undefined: throw an error?
-              : $opt->{raiseundef}                  ? croak( "undefined variable: $t\n" )
+              : $opt->{raiseundef}                  ? _croak( "undefined variable: $t\n" )
 
               # undefined
               :                                     undef
@@ -107,7 +111,7 @@ sub _strinterp {
                 RECURSE:
                   {
 
-                      croak(
+                      _croak(
                           "circular interpolation loop detected with repeated interpolation of <\$$t>\n"
                       ) if $opt->{track}{$t}++;
 
@@ -115,7 +119,7 @@ sub _strinterp {
 
                       last RECURSE if $opt->{recurse_limit} && $opt->{loop} > $opt->{recurse_limit};
 
-                      croak(
+                      _croak(
                           "recursion fail-safe limit ($opt->{recurse_fail_limit}) reached at interpolation of <\$$t>\n"
                       ) if $opt->{recurse_fail_limit} && $opt->{loop} > $opt->{recurse_fail_limit};
 

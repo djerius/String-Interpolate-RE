@@ -7,7 +7,7 @@ use warnings;
 
 use Exporter::Shiny qw[ strinterp ];
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 ## no critic (ProhibitAccessOfPrivateData)
 
